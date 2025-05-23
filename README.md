@@ -146,7 +146,7 @@ DELIMITER //
 CREATE PROCEDURE add_return_records(IN p_return_id VARCHAR(10), IN p_issued_id VARCHAR(10), IN p_book_quality VARCHAR(10))
 
 BEGIN
-	DECLARE v_isbn VARCHAR(50);
+    DECLARE v_isbn VARCHAR(50);
     DECLARE v_book_name VARCHAR(80);
     
     INSERT INTO return_status(return_id, issued_id, return_date, book_quality)
