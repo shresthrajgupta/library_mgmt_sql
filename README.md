@@ -227,7 +227,7 @@ DELIMITER //
 CREATE PROCEDURE issue_book(IN p_issued_id VARCHAR(10), IN p_issued_member_id VARCHAR(30), IN p_issued_book_isbn VARCHAR(30), IN p_issued_emp_id VARCHAR(10))
 
 BEGIN
-	DECLARE v_status VARCHAR(10);
+    DECLARE v_status VARCHAR(10);
     
     -- checking if book is available 'yes'
     SELECT `status` INTO v_status 
