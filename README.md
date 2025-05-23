@@ -260,3 +260,8 @@ WHERE isbn = '978-0-553-29698-2';
 SELECT * FROM books
 WHERE isbn = '978-0-375-41398-8';
 ```
+
+***
+
+### Contact
+For questions or suggestions, feel free to open an issue or fork this repo and contribute.
