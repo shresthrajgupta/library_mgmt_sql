@@ -18,7 +18,7 @@ USE library_db;
 
 ### Operations
 
-**1) Create a New Book Record**
+**1) Create a new record for a book**
 ```sql
 INSERT INTO books(isbn, book_title, category, rental_price, status, author, publisher)
 VALUES('978-1-60129-456-2', 'To Kill a Mockingbird', 'Classic', 6.00, 'yes', 'Harper Lee', 'J.B. Lippincott & Co.');
@@ -26,7 +26,7 @@ VALUES('978-1-60129-456-2', 'To Kill a Mockingbird', 'Classic', 6.00, 'yes', 'Ha
 SELECT * FROM books WHERE isbn = '978-1-60129-456-2';
 ```
 
-**2) Update an Existing Member's Address**
+**2) Update the address of an existing member**
 ```sql
 UPDATE members
 SET member_address = '125 Oak St'
@@ -35,7 +35,7 @@ WHERE member_id = 'C103';
 SELECT * FROM members WHERE member_id = 'C103';
 ```
 
-**3) Delete a Record from the issued_status Table**
+**3) Delete a record from the `issued_status` table**
 ```sql
 DELETE FROM issued_status
 WHERE issued_id = 'IS121';
@@ -44,13 +44,13 @@ SELECT * FROM issued_status
 WHERE issued_id = 'IS121';
 ```
 
-**4) Retrieve All Books Issued by a Specific Employee**
+**4) Retrieve all books issued by a specific employee**
 ```sql
 SELECT * FROM issued_status
 WHERE issued_emp_id = 'E101';
 ```
 
-**5) List Members Who Have Issued More Than One Book**
+**5) List members who have issued more than one book**
 ```sql
 SELECT issued_member_id, COUNT(*) AS issued_books_count
 FROM issued_status
@@ -72,13 +72,13 @@ GROUP BY 1, 2;
 SELECT * FROM book_issued_cnt;
 ```
 
-**7) Retrieve All Books in a Specific Category**
+**7) Retrieve all books that belong to a specific category**
 ```sql
 SELECT * FROM books
 WHERE category = 'Fantasy';
 ```
 
-**8) Find Total Rental Income by Category**
+**8) Find the total rental income for each category**
 ```sql
 SELECT b.category, COUNT(*) AS total_count_borrowed, SUM(b.rental_price) AS total_rent_profit
 FROM issued_status as i
@@ -87,7 +87,7 @@ ON b.isbn = i.issued_book_isbn
 GROUP BY 1;
 ```
 
-**9) List Members Who Registered in the Last 180 Days from date 2022-05-01**
+**9) List members who registered within the last 180 days from the date 2022-05-01**
 ```sql
 SELECT * FROM members
 WHERE DATEDIFF('2022-05-01', reg_date) <= 180 AND DATEDIFF('2022-05-01', reg_date) >= 0;
