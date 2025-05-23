@@ -121,3 +121,142 @@ LEFT JOIN return_status as r
 ON r.issued_id = i.issued_id
 WHERE r.return_id IS NULL;
 ```
+
+**13) Identify members who currently have overdue books**
+```sql
+SELECT i.issued_member_id, m.member_name, b.book_title, i.issued_date, CURDATE() - i.issued_date as overdues_days
+FROM issued_status as i
+INNER JOIN members as m
+ON m.member_id = i.issued_member_id
+INNER JOIN books as b
+ON b.isbn = i.issued_book_isbn
+LEFT JOIN return_status as r
+ON r.issued_id = i.issued_id
+WHERE r.return_date IS NULL
+AND (CURDATE() - i.issued_date) > 30
+ORDER BY 5;
+```
+
+**14) Update the status of a book when it is returned**
+```sql
+DROP PROCEDURE IF EXISTS add_return_records;
+
+DELIMITER //
+
+CREATE PROCEDURE add_return_records(IN p_return_id VARCHAR(10), IN p_issued_id VARCHAR(10), IN p_book_quality VARCHAR(10))
+
+BEGIN
+	DECLARE v_isbn VARCHAR(50);
+    DECLARE v_book_name VARCHAR(80);
+    
+    INSERT INTO return_status(return_id, issued_id, return_date, book_quality)
+    VALUES (p_return_id, p_issued_id, CURDATE(), p_book_quality);
+
+    SELECT issued_book_isbn, issued_book_name INTO v_isbn, v_book_name
+    FROM issued_status
+    WHERE issued_id = p_issued_id;
+
+    UPDATE books
+    SET status = 'yes'
+    WHERE isbn = v_isbn;
+
+    SELECT CONCAT('Thank you for returning the book: ', v_book_name) AS message;
+END //
+
+DELIMITER ;
+
+CALL add_return_records('RS138', 'IS135', 'Good');
+CALL add_return_records('RS148', 'IS140', 'Good');
+
+SELECT * FROM return_status;
+
+SELECT * FROM books WHERE book_title LIKE '%Sapiens%';
+SELECT * FROM books WHERE book_title LIKE '%Animal%';
+```
+
+**15) Branch performance report in a new table `branch_reports`**
+```sql
+DROP TABLE IF EXISTS branch_reports;
+
+CREATE TABLE branch_reports AS
+SELECT b.branch_id, b.manager_id, COUNT(i.issued_id) as count_book_issued, COUNT(r.return_id) as count_book_returned, SUM(bk.rental_price) as total_revenue
+FROM issued_status as i
+INNER JOIN employees as e
+ON e.emp_id = i.issued_emp_id
+INNER JOIN branch as b
+ON e.branch_id = b.branch_id
+LEFT JOIN return_status as r
+ON r.issued_id = i.issued_id
+INNER JOIN books as bk
+ON i.issued_book_isbn = bk.isbn
+GROUP BY 1, 2;
+
+SELECT * FROM branch_reports;
+```
+
+**16) Create a new table `active_members` containing members who issued at least one book in the past 2 months**
+```sql
+DROP TABLE IF EXISTS active_members;
+
+CREATE TABLE active_members AS
+SELECT * FROM members
+WHERE member_id IN (SELECT DISTINCT issued_member_id FROM issued_status WHERE issued_date >= CURDATE() - INTERVAL 2 MONTH);
+
+SELECT * FROM active_members;
+```
+
+**17) Find top 3 employees who have processed the highest number of book issues**
+```sql
+SELECT e.emp_id, e.emp_name, COUNT(*) AS count_books_issued, b.branch_id, b.branch_address
+FROM issued_status as i
+INNER JOIN employees as e
+ON e.emp_id = i.issued_emp_id
+INNER JOIN branch as b
+ON e.branch_id = b.branch_id
+GROUP BY e.emp_id, e.emp_name, b.branch_id, b.branch_address
+ORDER BY COUNT(*) DESC
+LIMIT 3;
+```
+
+**18) Issue a book if it is available**
+```sql
+DROP PROCEDURE IF EXISTS issue_book;
+
+DELIMITER //
+
+CREATE PROCEDURE issue_book(IN p_issued_id VARCHAR(10), IN p_issued_member_id VARCHAR(30), IN p_issued_book_isbn VARCHAR(30), IN p_issued_emp_id VARCHAR(10))
+
+BEGIN
+	DECLARE v_status VARCHAR(10);
+    
+    -- checking if book is available 'yes'
+    SELECT `status` INTO v_status 
+    FROM books 
+    WHERE isbn = p_issued_book_isbn;
+
+    IF v_status = 'yes' THEN
+		INSERT INTO issued_status(issued_id, issued_member_id, issued_date, issued_book_isbn, issued_emp_id)
+		VALUES (p_issued_id, p_issued_member_id, CURDATE(), p_issued_book_isbn, p_issued_emp_id);
+
+		UPDATE books SET `status` = 'no'
+		WHERE isbn = p_issued_book_isbn;
+
+		SELECT CONCAT('Book records added successfully for book isbn: ', p_issued_book_isbn) AS message;
+    ELSE
+        SELECT CONCAT('Sorry to inform you the book you have requested is unavailable book_isbn: ', p_issued_book_isbn) AS message;
+    END IF;
+END //
+
+DELIMITER ;
+
+CALL issue_book('IS155', 'C108', '978-0-553-29698-2', 'E104');
+CALL issue_book('IS156', 'C108', '978-0-375-41398-8', 'E104');
+
+SELECT * FROM issued_status;
+
+SELECT * FROM books
+WHERE isbn = '978-0-553-29698-2';
+
+SELECT * FROM books
+WHERE isbn = '978-0-375-41398-8';
+```
