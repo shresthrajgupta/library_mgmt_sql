@@ -93,8 +93,31 @@ SELECT * FROM members
 WHERE DATEDIFF('2022-05-01', reg_date) <= 180 AND DATEDIFF('2022-05-01', reg_date) >= 0;
 ```
 
+**10) List employees along with their branch manager's name and branch details**
+```sql
+SELECT e1.emp_id, e1.emp_name, e1.position, e1.salary, b.*, e2.emp_name as manager
+FROM employees as e1
+INNER JOIN branch as b
+ON e1.branch_id = b.branch_id    
+INNER JOIN employees as e2
+ON e2.emp_id = b.manager_id;
+```
 
+**11) Create a table containing books with a rental price above 7**
+```sql
+DROP TABLE IF EXISTS expensive_books;
 
+CREATE TABLE expensive_books AS
+SELECT * FROM books
+WHERE rental_price > 7.00;
 
+SELECT * FROM expensive_books;
+```
 
-
+**12) Retrieve the list of books that have not yet been returned**
+```sql
+SELECT * FROM issued_status as i
+LEFT JOIN return_status as r
+ON r.issued_id = i.issued_id
+WHERE r.return_id IS NULL;
+```
