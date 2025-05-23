@@ -103,7 +103,7 @@ INNER JOIN employees as e2
 ON e2.emp_id = b.manager_id;
 ```
 
-**11) Create a table containing books with a rental price above 7**
+**11) Create a table `expensive_books` containing books with a rental price above 7**
 ```sql
 DROP TABLE IF EXISTS expensive_books;
 
